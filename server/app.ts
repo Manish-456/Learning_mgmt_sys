@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from 'express';
 export const app = express();
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { errorHandler } from './middleware/error';
 
 // body-parser
 app.use(express.json({ limit: "50mb" }));
@@ -29,3 +30,5 @@ app.all('*', (req: Request, res: Response, next: NextFunction) => {
     err.statusCode = 404;
      next(err)
 })
+
+app.use(errorHandler)
