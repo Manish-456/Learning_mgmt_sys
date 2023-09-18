@@ -5,6 +5,7 @@ export const app = express();
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { errorHandler } from './middleware/error';
+import userRouter from './routes/user.route';
 
 // body-parser
 app.use(express.json({ limit: "50mb" }));
@@ -24,6 +25,9 @@ app.get('/test', (req: Request, res: Response, next: NextFunction) => {
         success: true
     })
 })
+
+app.use('/api/v1', userRouter);
+
 // testing route
 app.all('*', (req: Request, res: Response, next: NextFunction) => {
     const err = new Error(`Route ${req.originalUrl} is not found`) as any;
