@@ -1,5 +1,4 @@
 import { Response } from 'express';
-import jwt from 'jsonwebtoken';
 import { IUser } from '../models/user.model';
 import { redis } from './redis';
 
@@ -12,6 +11,25 @@ interface ITokenOptions {
     secure?: boolean
 }
 
+  // parse environment variables to integrates with fallback values.
+  const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || '300', 10);
+  const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || '300', 10);
+
+  // options for cookies
+  export const accessTokenOptions: ITokenOptions = {
+      expires: new Date(Date.now() * accessTokenExpire * 60 * 1000),
+      maxAge: accessTokenExpire * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: 'lax',
+  };
+
+  export const refreshTokenOptions: ITokenOptions = {
+      expires: new Date(Date.now() * refreshTokenExpire * 24 * 60 * 60 * 1000),
+      maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: 'lax'
+  };
+
 
 export const sendToken = async (user: IUser, statusCode: number, res: Response) => {
     const accessToken = user.signAccessToken();
@@ -21,26 +39,7 @@ export const sendToken = async (user: IUser, statusCode: number, res: Response) 
     // @ts-ignore
     const { password, ...rest } = user._doc;
     redis.set(user._id, JSON.stringify(rest) as any)
-    // parse environment variables to integrates with fallback values.
-    const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || '300', 10);
-    const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || '300', 10);
-
-    // options for cookies
-    const accessTokenOptions: ITokenOptions = {
-        expires: new Date(Date.now() * accessTokenExpire * 1000),
-        maxAge: accessTokenExpire * 1000,
-        httpOnly: true,
-        sameSite: 'lax',
-    };
-
-    const refreshTokenOptions: ITokenOptions = {
-        expires: new Date(Date.now() * refreshTokenExpire * 1000),
-        maxAge: refreshTokenExpire * 1000,
-        httpOnly: true,
-        sameSite: 'lax'
-    };
-
-    // Todo : only set secure to true in production
+  
     if (process.env.NODE_ENV === "production") {
         accessTokenOptions.secure = true
     }
