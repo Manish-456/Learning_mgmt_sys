@@ -1,9 +1,10 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
+import { IUser } from "./user.model";
 
 interface IComment extends Document {
-    user: Record<string, any>;
-    comment: string;
-    commentReplies?: IComment[]
+    user: IUser;
+    question: string;
+    questionReplies?: IComment[]
 }
 
 interface IReview extends Document {
@@ -64,8 +65,8 @@ const linkSchema: Schema<ILink> = new mongoose.Schema({
 
 const commentSchema: Schema<IComment> = new mongoose.Schema({
     user: Object,
-    comment: String,
-    commentReplies: [Object]
+    question: String,
+    questionReplies: [Object]
 })
 
 const courseDataSchema = new mongoose.Schema({
@@ -102,11 +103,9 @@ const courseSchema = new mongoose.Schema({
     thumbnail: {
         public_id: {
             type: String,
-            required: true
         },
         url: {
             type: String,
-            required: true
         }
     },
 
@@ -148,7 +147,8 @@ const courseSchema = new mongoose.Schema({
     }
 })
 
-const CourseModel = mongoose.model("Course", courseSchema);
+// @ts-ignore
+const CourseModel : Model<ICourse> = mongoose.model("Course", courseSchema);
 export default CourseModel;
 
 
