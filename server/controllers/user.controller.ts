@@ -288,13 +288,13 @@ export const updateUserPassword = CatchAsyncError(async (req: Request, res: Resp
 
 // update profile picture
 
-interface IUpdateProfilePicture {
+interface IUpdateUserAvatar {
     avatar: string;
 }
 
 export const updateUserAvatar = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { avatar } = req.body as IUpdateProfilePicture;
+        const { avatar } = req.body as IUpdateUserAvatar;
         const userId = req.user._id;
         const user = await userModel.findById(userId).select("-password");
         if (avatar && user) {

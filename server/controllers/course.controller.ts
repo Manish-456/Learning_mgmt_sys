@@ -6,8 +6,6 @@ import { createCourse } from '../services/course.service';
 import CourseModel from '../models/course.model';
 import { redis } from '../utils/redis';
 import mongoose from 'mongoose';
-import ejs from 'ejs';
-import path from 'path';
 import sendMail from '../utils/sendMail';
 
 // upload course
@@ -179,66 +177,162 @@ export const addQuestion = CatchAsyncError(async (req: Request, res: Response, n
 
 // add answer in course question
 interface IAddAnswerData {
-    courseId : string;
-    contentId : string;
-    answer : string;
-    questionId : string;
+    courseId: string;
+    contentId: string;
+    answer: string;
+    questionId: string;
 }
-export const addAnswer = CatchAsyncError(async(req : Request, res : Response, next : NextFunction) => {
+export const addAnswer = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {courseId, contentId, answer, questionId} = req.body as IAddAnswerData;
+        const { courseId, contentId, answer, questionId } = req.body as IAddAnswerData;
 
-        console.log(req.body);
-        
         const course = await CourseModel.findById(courseId);
 
-        if(!mongoose.Types.ObjectId.isValid(contentId)) return next(new ErrorHandler(400, "Invalid Id"));
+        if (!mongoose.Types.ObjectId.isValid(contentId)) return next(new ErrorHandler(400, "Invalid Id"));
 
-        const courseContent = course?.courseData.find(data => data._id.equals(contentId));
+        const courseContent = course ?.courseData.find(data => data._id.equals(contentId));
 
-        if(!courseContent) return next(new ErrorHandler(400, "Invalid ContentId"));
+        if (!courseContent) return next(new ErrorHandler(400, "Invalid ContentId"));
 
         const questions = courseContent.questions.find(question => question._id.equals(questionId));
 
-        if(!questions) return next(new ErrorHandler(404, "Question not found"));
+        if (!questions) return next(new ErrorHandler(404, "Question not found"));
         // create a new answer to the specific question
-        const newQuestion: any = { user: req.user, question : answer, questionReplies: [] };
+        const newQuestion: any = { user: req.user, question: answer, questionReplies: [] };
 
-        questions.questionReplies?.push(newQuestion);
+        questions.questionReplies ?.push(newQuestion);
 
-        await course?.save();
+        await course ?.save();
 
-        if(req.user._id === questions.user._id){
-           //TODO: create a notification
+        if (req.user._id === questions.user._id) {
+            //TODO: create a notification
 
-        }else{
+        } else {
             const data = {
-                name : questions.user.name,
-                title : courseContent.title
+                name: questions.user.name,
+                title: courseContent.title
             };
-
             // const html = await ejs.renderFile(path.join(__dirname, '..', 'mails', 'question-reply.ejs'), data);
-
             try {
-                
-               await sendMail({
-                email : questions.user.email,
-                template : 'question-reply.ejs',
-                data,
-                subject : "Question Reply"
-               });
 
-               return res.status(200).json({
-                success : true,
-                course
-               })
-            } catch (error : any) {
+                await sendMail({
+                    email: questions.user.email,
+                    template: 'question-reply.ejs',
+                    data,
+                    subject: "Question Reply"
+                });
+
+                return res.status(200).json({
+                    success: true,
+                    course
+                })
+            } catch (error: any) {
                 return next(new ErrorHandler(500, error.message));
             }
         }
-       
 
-    } catch (error : any) {
+
+    } catch (error: any) {
         return next(new ErrorHandler(500, error.message));
     }
-})
+});
+
+// add review in course.
+interface IAddReviewData {
+    review: string;
+    rating: number;
+};
+
+export const addReview = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userCourseList = req.user ?.courses;
+
+        const courseId = req.params.id;
+
+        // check if course is already exists in userCourseList based on jwt.
+
+        const courseExists = userCourseList ?.some((course: any) => course._id.toString() === courseId);
+
+        if (!courseExists) return next(new ErrorHandler(404, "You are not elligible to access this content."))
+
+        const course = await CourseModel.findById(courseId);
+
+        const { review, rating } = req.body as IAddReviewData;
+
+        const newReview: any = {
+            user: req.user,
+            comment: review,
+            rating
+        }
+
+        course ?.reviews.push(newReview);
+        let avg = 0;
+
+        course ?.reviews.forEach(review => avg += review.rating);
+
+        if (course) {
+            course.ratings = avg / course ?.reviews.length;  // 9 / 2
+        }
+
+
+        await course ?.save()
+        
+         const notification = {
+            title: "New Review Received",
+            message: `${req.user ?.name} has given a review in ${course ?.name}.`,
+        }
+
+        // TODO:  Create notification
+
+
+        res.status(200).json({
+            success: true,
+            course
+        })
+
+    } catch (error: any) {
+        return next(new ErrorHandler(500, error.message))
+    }
+});
+
+// add reply to review
+
+interface IAddReplyReviewData {
+    comment: string;
+    courseId: string;
+    reviewId: string;
+}
+
+export const addReplyToReview = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { comment, courseId, reviewId } = req.body as IAddReplyReviewData;
+
+        const course = await CourseModel.findById(courseId);
+        if (!course) return next(new ErrorHandler(404, 'Course not found'));
+
+        const review = course ?.reviews.find((review: any) => review._id.toString().equals(reviewId));
+
+        if (!review) return next(new ErrorHandler(404, "Review not found"));
+
+        const replyData: any = {
+            user: req.user,
+            comment
+        };
+        if (!review.commentReplies) {
+            review.commentReplies = []
+        }
+        review.commentReplies.push(replyData);
+        await course.save();
+
+        return res.status(200).json({
+            success: true,
+            course
+        })
+    } catch (error: any) {
+        return next(new ErrorHandler(500, error.message));
+    }
+});
+
+
+
+

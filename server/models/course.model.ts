@@ -1,5 +1,5 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
-import { IUser } from "./user.model";
+import { IUser } from './user.model';
 
 interface IComment extends Document {
     user: IUser;
@@ -8,7 +8,7 @@ interface IComment extends Document {
 }
 
 interface IReview extends Document {
-    user: Record<string, any>;
+    user: IUser;
     rating: number;
     comment: string;
     commentReplies: IComment[];
@@ -55,7 +55,8 @@ const reviewSchema: Schema<IReview> = new mongoose.Schema({
         type: Number,
         required: true
     },
-    comment: String
+    comment: String,
+    commentReplies : [Object]
 })
 
 const linkSchema: Schema<ILink> = new mongoose.Schema({
