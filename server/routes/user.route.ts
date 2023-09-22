@@ -10,7 +10,8 @@ import {
     updateAccessToken,
     updateUserAvatar,
     updateUserInfo,
-    updateUserPassword
+    updateUserPassword,
+    updateUserRole
 } from "../controllers/user.controller";
 
 import { authorizedRole, isAuthenticated } from "../middleware/auth";
@@ -38,6 +39,9 @@ userRouter.put('/update-user-info', isAuthenticated, updateUserInfo);
 userRouter.put('/update-user-password', isAuthenticated, updateUserPassword);
 
 userRouter.put('/update-user-avatar', isAuthenticated, updateUserAvatar);
+
+userRouter.put('/edit-role', isAuthenticated, authorizedRole("Admin"), updateUserRole);
+
 
 
 export default userRouter;
