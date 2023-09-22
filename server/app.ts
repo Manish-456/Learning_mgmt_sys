@@ -35,7 +35,8 @@ const route = process.env.ROUTE as string;
 app.use(route, userRouter, courseRouter, orderRouter, notificationRouter);
 
 
-// testing route
+//? Handling Invalid routes
+
 app.all('*', (req: Request, res: Response, next: NextFunction) => {
     const err = new Error(`Route ${req.originalUrl} is not found`) as any;
     err.statusCode = 404;
