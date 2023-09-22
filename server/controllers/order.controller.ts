@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { CatchAsyncError } from '../middleware/catch-async-error';
 import ErrorHandler from '../utils/error-handler';
-import OrderModel, { IOrder } from '../models/orderModel';
+import { IOrder } from '../models/orderModel';
 import userModel from '../models/user.model';
 import CourseModel from '../models/course.model';
 import path from 'path';
 import ejs from 'ejs';
 import sendMail from '../utils/sendMail';
 import NotificationModel from '../models/notificationModel';
-import { newOrder } from '../services/order.service';
+import { getAllOrderServices, newOrder } from '../services/order.service';
 
 
 export const createOrder = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -81,5 +81,14 @@ export const createOrder = CatchAsyncError(async (req: Request, res: Response, n
     } catch (error: any) {
         return next(new ErrorHandler(500, error.message))
 
+    }
+})
+
+export const getAllOrders = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await getAllOrderServices(res);
+
+    } catch (error: any) {
+        return next(new ErrorHandler(500, error.message));
     }
 })

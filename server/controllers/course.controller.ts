@@ -2,7 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 import { CatchAsyncError } from '../middleware/catch-async-error';
 import cloudinary from 'cloudinary';
 import ErrorHandler from '../utils/error-handler';
-import { createCourse } from '../services/course.service';
+import { createCourse, getAllCoursesServices } from '../services/course.service';
 import CourseModel from '../models/course.model';
 import { redis } from '../utils/redis';
 import mongoose from 'mongoose';
@@ -344,6 +344,14 @@ export const addReplyToReview = CatchAsyncError(async (req: Request, res: Respon
     }
 });
 
+// Get all courses with video contents
+export const getAllCoursesWithContents = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        getAllCoursesServices(res);
 
+    } catch (error: any) {
+        return next(new ErrorHandler(500, error.message));
+    }
+})
 
 

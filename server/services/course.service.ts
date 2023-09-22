@@ -11,3 +11,14 @@ export const createCourse = CatchAsyncError(async (data: any, res: Response) => 
         course
     })
 })
+
+// get All Courses
+export const getAllCoursesServices = async (
+    res: Response) => {
+    const courses = await CourseModel.find();
+    res.status(201).json({
+        success: true,
+        courses
+    })
+}
+

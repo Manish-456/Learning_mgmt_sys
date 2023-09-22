@@ -10,7 +10,7 @@ import ErrorHandler from '../utils/error-handler';
 import sendMail from '../utils/sendMail';
 import { accessTokenOptions, refreshTokenOptions, sendToken } from '../utils/jwt';
 import { redis } from '../utils/redis';
-import { getUserById } from '../services/user.service';
+import { getAllUsersService, getUserById } from '../services/user.service';
 import cloudinary from 'cloudinary';
 
 interface IRegistrationBody {
@@ -322,9 +322,19 @@ export const updateUserAvatar = CatchAsyncError(async (req: Request, res: Respon
             }
         }
 
-        await user?.save();
+        await user ?.save();
         await redis.set(userId, JSON.stringify(user));
-        return res.status(200).json({success : true, user});
+        return res.status(200).json({ success: true, user });
+
+    } catch (error: any) {
+        return next(new ErrorHandler(500, error.message));
+    }
+})
+
+// Get all users
+export const getAllUsers = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await getAllUsersService(res);
 
     } catch (error: any) {
         return next(new ErrorHandler(500, error.message));
