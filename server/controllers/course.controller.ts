@@ -7,6 +7,7 @@ import CourseModel from '../models/course.model';
 import { redis } from '../utils/redis';
 import mongoose from 'mongoose';
 import sendMail from '../utils/sendMail';
+import NotificationModel from '../models/notificationModel';
 
 // upload course
 export const uploadCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -164,6 +165,11 @@ export const addQuestion = CatchAsyncError(async (req: Request, res: Response, n
         courseContent.questions.push(newQuestion);
 
         await course ?.save();
+        await NotificationModel.create({
+            user: req.user ?._id,
+            title: 'New Question added',
+            message: `You have a new question in ${courseContent ?.title}`
+        });
 
         res.status(200).json({
             success: true,
@@ -205,7 +211,11 @@ export const addAnswer = CatchAsyncError(async (req: Request, res: Response, nex
         await course ?.save();
 
         if (req.user._id === questions.user._id) {
-            //TODO: create a notification
+            await NotificationModel.create({
+                user: req.user ?._id,
+                title: 'New Question',
+                message: `You have a new question reply in ${course ?.name}`
+            });
 
         } else {
             const data = {
@@ -278,11 +288,12 @@ export const addReview = CatchAsyncError(async (req: Request, res: Response, nex
         await course ?.save()
         
          const notification = {
+            user: req.user._id,
             title: "New Review Received",
             message: `${req.user ?.name} has given a review in ${course ?.name}.`,
         }
 
-        // TODO:  Create notification
+        await NotificationModel.create(notification);
 
 
         res.status(200).json({
