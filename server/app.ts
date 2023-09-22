@@ -10,6 +10,7 @@ import userRouter from './routes/user.route';
 import courseRouter from './routes/course.route';
 import orderRouter from './routes/order.route';
 import notificationRouter from './routes/notification.route';
+import analyticsRouter from './routes/analytics.route';
 
 // body-parser
 app.use(express.json({ limit: "50mb" }));
@@ -32,7 +33,7 @@ app.get('/test', (req: Request, res: Response, next: NextFunction) => {
 
 const route = process.env.ROUTE as string;
 
-app.use(route, userRouter, courseRouter, orderRouter, notificationRouter);
+app.use(route, userRouter, courseRouter, orderRouter, notificationRouter, analyticsRouter);
 
 
 //? Handling Invalid routes

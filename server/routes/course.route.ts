@@ -9,7 +9,8 @@ import {
     uploadCourse,
     addReview,
     addReplyToReview,
-    getAllCoursesWithContents
+    getAllCoursesWithContents,
+    deleteCourse
 } from '../controllers/course.controller';
 
 import { authorizedRole, isAuthenticated } from '../middleware/auth';
@@ -27,5 +28,6 @@ courseRouter.put('/add-question', isAuthenticated, addQuestion);
 courseRouter.put('/add-answer', isAuthenticated, addAnswer)
 courseRouter.put(`/add-review/:id`, isAuthenticated, addReview);
 courseRouter.put('/review-reply', isAuthenticated, authorizedRole("Admin"), addReplyToReview);
+courseRouter.delete('/delete-course', isAuthenticated, authorizedRole("Admin"), deleteCourse);
 
 export default courseRouter
