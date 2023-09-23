@@ -159,7 +159,7 @@ export const updateAccessToken = async (req: Request, res: Response, next: NextF
 
         const session = await redis.get(decoded.id);
 
-        if (!session) return next(new ErrorHandler(400, message));
+        if (!session) return next(new ErrorHandler(400, "Please login to access this resource"));
 
         const user = JSON.parse(session);
 
@@ -174,7 +174,9 @@ export const updateAccessToken = async (req: Request, res: Response, next: NextF
         req.user = user;
 
         res.cookie('access_token', accessToken, accessTokenOptions)
-        res.cookie('refresh_token', refreshToken, refreshTokenOptions)
+        res.cookie('refresh_token', refreshToken, refreshTokenOptions);
+
+        await redis.set(user._id, JSON.stringify(user), "EX", 604800 ); // expires in 7 days
 
         return res.status(200).json({
             status: "success",
