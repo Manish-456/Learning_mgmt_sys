@@ -11,6 +11,7 @@ import courseRouter from './routes/course.route';
 import orderRouter from './routes/order.route';
 import notificationRouter from './routes/notification.route';
 import analyticsRouter from './routes/analytics.route';
+import layoutRouter from './routes/layout.route';
 
 // body-parser
 app.use(express.json({ limit: "50mb" }));
@@ -33,7 +34,13 @@ app.get('/test', (req: Request, res: Response, next: NextFunction) => {
 
 const route = process.env.ROUTE as string;
 
-app.use(route, userRouter, courseRouter, orderRouter, notificationRouter, analyticsRouter);
+app.use(route,
+     userRouter,
+      courseRouter,
+       orderRouter,
+        notificationRouter,
+         analyticsRouter,
+          layoutRouter);
 
 
 //? Handling Invalid routes
@@ -41,7 +48,7 @@ app.use(route, userRouter, courseRouter, orderRouter, notificationRouter, analyt
 app.all('*', (req: Request, res: Response, next: NextFunction) => {
     const err = new Error(`Route ${req.originalUrl} is not found`) as any;
     err.statusCode = 404;
-     next(err)
+    next(err)
 })
 
 app.use(errorHandler)
