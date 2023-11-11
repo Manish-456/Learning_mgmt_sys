@@ -176,7 +176,7 @@ export const updateAccessToken = async (req: Request, res: Response, next: NextF
         res.cookie('access_token', accessToken, accessTokenOptions)
         res.cookie('refresh_token', refreshToken, refreshTokenOptions);
 
-        await redis.set(user._id, JSON.stringify(user), "EX", 604800 ); // expires in 7 days
+        await redis.set(user._id, JSON.stringify(user), "EX", 604800); // expires in 7 days
 
         return res.status(200).json({
             status: "success",
@@ -303,24 +303,15 @@ export const updateUserAvatar = CatchAsyncError(async (req: Request, res: Respon
 
             if (user ?.avatar ?.public_id) {
                 await cloudinary.v2.uploader.destroy(user ?.avatar ?.public_id);
-                const myCloud = await cloudinary.v2.uploader.upload(avatar, {
-                    folder: 'avatars',
-                    width: 150
-                });
-                user.avatar = {
-                    public_id: myCloud.public_id,
-                    url: myCloud.secure_url
-                }
+            }
 
-            } else {
-                const myCloud = await cloudinary.v2.uploader.upload(avatar, {
-                    folder: 'avatars',
-                    width: 150
-                });
-                user.avatar = {
-                    public_id: myCloud.public_id,
-                    url: myCloud.secure_url
-                }
+            const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+                folder: 'avatars',
+                width: 150
+            });
+            user.avatar = {
+                public_id: myCloud.public_id,
+                url: myCloud.secure_url
             }
         }
 
@@ -344,9 +335,9 @@ export const getAllUsers = CatchAsyncError(async (req: Request, res: Response, n
 });
 
 // update user role => Only form 
-export const updateUserRole = CatchAsyncError(async(req : Request, res : Response, next : NextFunction) => {
+export const updateUserRole = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {id, role} = req.body;
+        const { id, role } = req.body;
         updateUserRoleService(id, role, res);
     } catch (error: any) {
         return next(new ErrorHandler(500, error.message));
@@ -354,20 +345,20 @@ export const updateUserRole = CatchAsyncError(async(req : Request, res : Respons
 });
 
 // Delete User => Only for Admin
-export const deleteUser = CatchAsyncError(async(req : Request, res : Response, next : NextFunction) => {
+export const deleteUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-    const {id} = req.params;
-    const user = await userModel.findById(id);
-    
-    await user?.deleteOne({_id : id});
-    await redis.del(id);
+        const { id } = req.params;
+        const user = await userModel.findById(id);
 
-    return res.status(200).json({
-        success : true,
-        message : 'User deleted successfully'
-    });
-    
-    } catch (error : any) {
+        await user ?.deleteOne({ _id: id });
+        await redis.del(id);
+
+        return res.status(200).json({
+            success: true,
+            message: 'User deleted successfully'
+        });
+
+    } catch (error: any) {
         return next(new ErrorHandler(500, error.message));
     }
 })
